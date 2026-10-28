@@ -1,0 +1,28 @@
+site_name: Quota Dashboard Runbook
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - search.suggest
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.superfences
+nav:
+  - Start here: index.md
+  - Connect to the server: connect.md
+  - Deploy:
+      - First install: deploy/first-install.md
+      - Update: deploy/update.md
+      - Roll back: deploy/rollback.md
+      - What CI does: deploy/automatic.md
+  - Maintenance:
+      - Health check: maintenance/health-checks.md
+      - Backups: maintenance/backups.md
+      - Passwords and keys: maintenance/secrets.md
+  - When it crashes:
+      - Site is down: crashes/site-down.md
+      - Common errors: crashes/common-errors.md
+      - Restore the database: crashes/restore-database.md
+      - Server is gone: crashes/server-lost.md
