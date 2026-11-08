@@ -1,32 +1,40 @@
-# What happens when code is pushed (CI)
+# How a change reaches the office (the pipeline)
 
-**When to use this:** You want to know what the green or red tick on GitHub means.
-**Time it takes:** 3 minutes to read
+**When to use this:** You want to know what the ticks on GitHub mean and how a change goes live.
+**Time it takes:** 5 minutes to read
 
 ## The short version
 
-Every push to the `main` branch and every pull request starts a robot called **CI**
-on GitHub. It:
+```
+push to main ─► CI: style check + tests ─► builds the new version ─► the staging copy installs it
+                Security: secrets, libraries, known holes                        │
+                                                       you try it on staging ◄───┘
+you press "Release to production" ─► the office server installs it within minutes
+   (backup first, then update, then checks; if anything is wrong it goes back by itself)
+```
 
-1. starts a temporary database,
-2. checks the code style,
-3. runs the automatic tests.
+Nothing goes live in the office until someone presses **Release to production**.
 
-That is **all** it does. **It does not update the server.** A green tick means
-"the code passed its tests", not "it is live".
-
-## To put a new version live
-
-Follow [Update to a new version](update.md).
-
-## Reading the result
+## The robots on GitHub
 
 Open the repository on GitHub → **Actions** tab.
 
+| Robot | When | What it does |
+|---|---|---|
+| **CI** | Every push and pull request | Checks the code style and runs the tests. On `main`, when they pass, builds the new version. |
+| **Security** | Every push, and every Monday | Looks for passwords committed by mistake, libraries with known security holes, and holes in the built version. |
+| **Release to production** | Only when someone presses it | Marks the version staging runs as the one the office server should run. |
+
 | You see | Meaning |
 |---|---|
-| Green tick | Tests passed. Safe to [update](update.md). |
-| Red cross | A test or style check failed. **Do not update.** Tell the developer. |
+| Green tick on CI | Tests passed; staging gets it within minutes. |
+| Red cross on CI | A test or style check failed. Nothing was built; staging and the office stay as they were. Tell the developer. |
+| Red cross on Security | A library needs updating or something looks like a password. Not urgent for the site, but tell the developer this week. |
 | Yellow dot | Still running. Wait. |
 
-_Last checked: YYYY-MM-DD_
+## Next
+
+- Try a change before it goes live: [The staging copy](staging.md)
+- Put it live: [Release a new version](update.md)
+
+_Last checked: 2026-11-08_

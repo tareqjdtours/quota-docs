@@ -1,45 +1,32 @@
-# Go back to the last working version
+# Go back to an earlier version
 
-**When to use this:** A new version broke something and you need the old one.
-**Time it takes:** 15 minutes
-**You need:** [SSH access](../connect.md) and the version codes you wrote down before the update.
+**When to use this:** A released version works but something in it is wrong, and you want the one before.
+**Time it takes:** 5 minutes
+**You need:** A GitHub account with write access. No server access.
 
 !!! warning "Going back does not undo database changes"
-    The database update (step 3 of [Update](update.md)) only moves forward. If the new version changed the database and the old code cannot work with it, [restore the backup](../crashes/restore-database.md) taken before the update.
-
-## Before you start
-
-- [ ] Take a [backup](../maintenance/backups.md) of the current state.
-- [ ] Have the two old version codes (backend and frontend).
+    Database updates only move forward. They are written so the earlier version keeps working. If it ever does not, [restore the backup](../crashes/restore-database.md) the server took just before the update (`pre-update_...` in the backups folder).
 
 ## Steps
 
-1. In the Quota folder, check out the old versions:
-
-   ```bash
-   git checkout <old-backend-code>
-   git -C frontend checkout <old-frontend-code>
-   ```
-
-2. Rebuild and restart:
-
-   ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env up -d --build
-   ```
+1. GitHub → the repository (backend or frontend) → **Packages** → `quota-backend` (or `quota-frontend`).
+2. Find the release you want: each one is kept as `prod-<date>-<time>`.
+3. **Actions** → **Release to production** → **Run workflow**, type that name instead of `main`, press the green button.
+4. Wait about 5 minutes.
 
 ## Check it worked
 
-- `docker compose -f deploy/compose.yml --env-file deploy/.env ps` shows all boxes running.
-- Sign in and open a quote.
+- Sign in and open an order.
+- The release run's summary names the version you typed.
 
-!!! danger "Remember to return to the latest later"
-    The server is now parked on an old version. When the fix is ready, run `git checkout main && git pull` (and the same with `git -C frontend`) before following [Update](update.md), or future updates will not work.
+!!! tip "Back to normal"
+    The next time you press Release to production with `main`, the office follows the latest again.
 
 ## If something goes wrong
 
 | You see | Do this |
 |---|---|
 | Errors about missing columns | The database is ahead of the code. [Restore the backup](../crashes/restore-database.md). |
-| `error: pathspec ... did not match` | The version code is wrong. Check it with `git log --oneline`. |
+| The release run is red: "not a tag" or "not found" | The name is wrong. Copy it again from Packages. |
 
-_Last checked: YYYY-MM-DD_
+_Last checked: 2026-11-08_

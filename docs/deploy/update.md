@@ -1,62 +1,37 @@
-# Update to a new version
+# Release a new version
 
-**When to use this:** The developers pushed new code and you want it live.
-**Time it takes:** 10 minutes
-**You need:** [SSH access](../connect.md). Nothing updates automatically, so someone has to do this.
+**When to use this:** A change works on [the staging copy](staging.md) and you want it in the office.
+**Time it takes:** 5 minutes
+**You need:** A GitHub account with write access to the two Quota repositories. No server access.
 
-!!! warning "Staff may see a short pause"
-    The site restarts. Do it outside office hours when you can.
+!!! note "Staff may see a pause of under a minute"
+    The site restarts while the new version starts. Release outside busy hours when you can.
 
 ## Before you start
 
-- [ ] Be in the Quota folder on the server.
-- [ ] [Take a backup](../maintenance/backups.md).
-- [ ] Check GitHub: the latest push on `main` should have a green tick (its tests passed).
-- [ ] Write down the version you are on, so you can go back:
-
-  ```bash
-  git rev-parse --short HEAD
-  git -C frontend rev-parse --short HEAD
-  ```
+- [ ] The latest **CI** run on `main` has a green tick.
+- [ ] You tried the change on [the staging copy](staging.md).
 
 ## Steps
 
-1. Download the new code for both repositories:
-
-   ```bash
-   git pull
-   git -C frontend pull
-   ```
-
-2. Rebuild and restart:
-
-   ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env up -d --build
-   ```
-
-3. **Update the database.** This is not automatic. Skipping it causes errors.
-
-   ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env exec backend alembic upgrade head
-   ```
+1. GitHub → the **backend** repository → **Actions** → **Release to production** → **Run workflow**. Leave `main` and press the green button.
+2. If the screens changed, do the same in the **frontend** repository.
+3. Wait about 5 minutes. The office server checks every 2 minutes, takes a backup, updates the database and starts the new version.
 
 ## Check it worked
 
-```bash
-docker compose -f deploy/compose.yml --env-file deploy/.env ps
-curl http://localhost/health
-```
-
-- `db`, `backend`, `frontend` and `backup` are running.
-- Open the site, sign in, open a quote, and open its offer.
+- The release run on GitHub has a green tick, and its summary names the version.
+- Open Quota, sign in, open an order and its offer.
+- No "update failed" e-mail arrived from the monitor.
 
 ## If something goes wrong
 
+The server checks the new version itself. If it does not start properly, it **puts the previous version back on its own** and the monitor e-mails "fail".
+
 | You see | Do this |
 |---|---|
-| `git pull` says local changes would be overwritten | Someone edited files on the server. Do not force it; ask the developer. |
-| Pages show errors about a missing column or table | Step 3 was not run, or failed. Run it and read the message. |
-| The database update step fails | [Go back](rollback.md), then tell the developer the error. |
-| Site is down after the update | [Site is down](../crashes/site-down.md) |
+| A "fail" e-mail after a release | The old version is running again. Tell the developer; the log is on the server in `~/Library/Logs/quota-update.log`. |
+| The release run is red | Nothing changed in the office. Check you typed a real version name. |
+| The new version runs but something is wrong | [Go back to an earlier version](rollback.md). |
 
-_Last checked: YYYY-MM-DD_
+_Last checked: 2026-11-08_
