@@ -1,77 +1,89 @@
-# Connect to the server (SSH)
+# Connect to the server
 
-**When to use this:** Any page that says "open a terminal on the server".
-**Time it takes:** 5 minutes (first time: 15)
-**You need:** The server address and your username from the person who manages access, and to be on the office network (or VPN).
+**When to use this:** A page says "on the office Mac", and you are not sitting at it.
+**Time it takes:** 5 minutes (the first time: 15)
+**You need:** Your own computer, to be in the office (or on the office VPN), and the server address and your
+username from the person who manages the server.
 
-SSH lets you type commands on the server from your own computer, securely.
+If you **are** sitting at the office Mac, skip to [Go to the Quota folder](#go-to-the-quota-folder).
 
 !!! warning "The address and username are not on this site"
-    This site is public. Ask the developer, or look in the team password manager.
-    Replace `<username>`, `<server-address>` and `<quota-folder>` below.
+    This site is public. Ask the developer, or look in the team password manager. Below, replace
+    `<username>` and `<server-address>` with what they give you.
 
-## Steps: the first time
+## The first time only: make your key
 
-1. Open a terminal (**Mac**: Terminal. **Windows**: PowerShell). SSH is already installed.
-2. Create your own key (skip if you have one). Choose a passphrase and remember it.
+A key is how the Mac knows it is you. You make it once on your own computer.
 
-   ```bash
-   ssh-keygen -t ed25519 -C "your-name-laptop"
-   ```
+1. Open the **Terminal** on your own computer. On a Mac: **⌘ Space**, type `Terminal`, press **Return**.
+   On Windows: open **PowerShell** from the Start menu.
+2. Copy this, paste it, press **Return**:
 
-3. Show your **public** key and send the whole line to the person managing the server:
+    ```bash
+    ssh-keygen -t ed25519 -C "your-name-laptop"
+    ```
 
-   ```bash
-   cat ~/.ssh/id_ed25519.pub
-   ```
+3. It asks where to save: press **Return**. It asks for a passphrase: type one you will remember, press
+   **Return**, then type it again. Nothing shows while you type. That is normal.
+4. Show your key:
 
-   !!! danger "Never share the private key"
-       The file **without** `.pub` stays on your computer. Never send it or paste it anywhere.
+    ```bash
+    cat ~/.ssh/id_ed25519.pub
+    ```
 
-4. After they add it, connect:
+    ![Making the key: press Return, type a passphrase, then the key is shown as one long line](img/term/ssh-key.png)
 
-   ```bash
-   ssh <username>@<server-address>
-   ```
+5. Copy the **whole** line that starts with `ssh-ed25519` and send it to the person who manages the server.
+   Wait until they say it has been added.
 
-5. The first time it asks `Are you sure you want to continue connecting (yes/no)?` Type `yes`.
-6. Go to the Quota folder (the one that contains the `deploy` and `backend` folders):
+!!! danger "Only ever send the line from the file ending in .pub"
+    The other file, without `.pub`, is your private key. Never send it or paste it anywhere.
 
-   ```bash
-   cd <quota-folder>
-   ls
-   ```
+## Every time: connect
 
-   You should see `backend`, `frontend` and `deploy`. **Run every command on this site from this folder.**
+1. In the Terminal on your own computer:
 
-## Check it worked
+    ```bash
+    ssh <username>@<server-address>
+    ```
+
+2. **The first time only**, it asks *Are you sure you want to continue connecting?* Type `yes` and press **Return**.
+
+    ![The first connection asks once if you trust the server. Type yes](img/term/ssh-first.png)
+
+3. Type your key's passphrase if it asks. You are now typing on the office Mac.
+
+## Go to the Quota folder
+
+Every command on this site is typed in the Quota folder.
 
 ```bash
-hostname
-docker compose version
+cd ~/quota
+ls
 ```
 
-The first shows the server's name, not your computer's.
+![In the Quota folder you see backend, deploy and docs](img/term/cd-quota.png)
 
-## Leaving
+!!! success "You should see"
+    `backend`, `deploy` and `docs` in the list. If you do, you are in the right place.
 
-```bash
-exit
-```
+## When you are done
 
-## Safety
+Type `exit` and press **Return**. The connection closes.
 
-- Use only your own key. Do not run commands you do not understand.
-- Never run `docker compose down -v` or `docker volume prune`.
-- If your laptop is lost, tell the server manager at once so your key is removed.
-
-## If something goes wrong
+## If you see something else
 
 | You see | Do this |
 |---|---|
-| `Connection timed out` | Not on the office network or VPN, or the server is off. |
-| `Connection refused` | Server on, SSH not running, or wrong address. Ask the developer. |
-| `Permission denied (publickey)` | Your key was not added, or wrong username. |
-| `REMOTE HOST IDENTIFICATION HAS CHANGED` | **Stop** and ask the developer. |
+| `Connection timed out` | You are not in the office or on the VPN, or the Mac is off. |
+| `Connection refused` | The address is wrong, or remote login is off on the Mac. Ask the developer. |
+| `Permission denied (publickey)` | Your key was not added yet, or the username is wrong. |
+| `REMOTE HOST IDENTIFICATION HAS CHANGED` | **Stop.** Do not type yes. Ask the developer. |
+| `No such file or directory` after `cd ~/quota` | You are connected to the wrong machine or user. Ask the developer. |
 
-_Last checked: YYYY-MM-DD_
+## Stay safe
+
+- Use only your own key. If your laptop is lost, tell the server manager at once so your key is removed.
+- Do not run commands you do not understand. Never run `docker compose down -v` or `docker volume prune`.
+
+_Last checked: 2026-11-11_

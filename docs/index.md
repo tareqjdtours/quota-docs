@@ -1,8 +1,8 @@
 # Quota Dashboard Runbook
 
-How to deploy, look after and fix the Quota Dashboard (the quoting tool for
-Jordan Select Tours and Jordan Direct Tours). Written for whoever is on duty,
-including when the usual person is away. Every page is a short list of steps.
+How to look after the Quota Dashboard (the quoting tool for Jordan Select Tours and Jordan Direct Tours), and
+what to do when something goes wrong. Written so that anyone on duty can follow it, step by step, even if they
+have never done it before.
 
 !!! danger "Something is broken right now?"
     Go straight to **[The site is down: first five minutes](crashes/site-down.md)**.
@@ -11,72 +11,78 @@ including when the usual person is away. Every page is a short list of steps.
 
 | I want to... | Go to |
 |---|---|
-| Open a terminal on the server | [Connect with SSH](connect.md) |
-| Install it on a new machine | [First install](deploy/first-install.md) |
-| Put a new version live | [Update to a new version](deploy/update.md) |
-| Undo a bad version | [Go back](deploy/rollback.md) |
-| Check it is healthy | [Daily health check](maintenance/health-checks.md) |
-| Back up or copy backups | [Backups](maintenance/backups.md) |
-| Change a password or key | [Passwords and keys](maintenance/secrets.md) |
-| Bring the data back | [Restore the database](crashes/restore-database.md) |
-| Fix a PDF, email or picture error | [Common errors](crashes/common-errors.md) |
-| Look after the office Mac itself | [The office Mac](maintenance/office-mac.md) |
+| Check that Quota is healthy | [Daily health check](maintenance/health-checks.md) |
+| Fix Quota when staff cannot open it | [The site is down](crashes/site-down.md) |
+| Fix one thing that fails (a PDF, an e-mail, a picture) | [Common errors](crashes/common-errors.md) |
+| Put a new version live | [Release a new version](deploy/update.md) |
+| Undo a bad version | [Go back to an earlier version](deploy/rollback.md) |
+| Check the backups | [Backups](maintenance/backups.md) |
 | Know how staff and clients get in | [How staff and clients reach it](reach.md) |
+| Look after the office Mac itself | [The office Mac](maintenance/office-mac.md) |
+| Type commands on the Mac from my own computer | [Connect to the server](connect.md) |
+| Change a password or key | [Passwords and keys](maintenance/secrets.md) |
+| Bring the data back from a backup | [Restore the database](crashes/restore-database.md) |
 
-## What it is made of
+## How to use these pages
 
-| Box | What it does |
+- **Do the steps in order**, one at a time. Do not skip a step because it looks done.
+- Grey boxes are **commands**. Click the copy button at the box's top right, paste it into the Terminal with
+  **⌘ V**, and press **Return**.
+- After most steps there is a picture of a Terminal window. It shows what you type (marked **you type this**)
+  and what comes back. **Green** is what you want to see. **Red** means something is wrong: look at the table
+  *If you see something else* at the bottom of the page.
+- The pictures are examples. Dates, times and numbers on your screen will be different. That is normal.
+
+## Words used on these pages
+
+| Word | What it means |
 |---|---|
-| **frontend** | The website staff open (nginx). It also passes requests to the backend. |
-| **backend** | The brain: prices quotes, builds offers and PDFs, sends email, hands booked quotes to the CRM. |
-| **db** | The database (PostgreSQL). All quotes and the catalogue live here. |
-| **backup** | A helper that saves a copy of the database every night. |
-| **tunnels** | Two small boxes outside the stack, `quota-staff-tunnel` and `quota-tunnel`, that carry staff and client traffic from Cloudflare. |
-
-All run together with **Docker Compose**. A **volume** is the folder Docker
-keeps data in, so data survives restarts. The ones that matter: **pgdata** (the
-database) and **backups** (the nightly copies). The pictures offers show are in a
-separate folder on the server (`MEDIA_ROOT`), **not** in the database.
-
-## How a new version arrives
-
-Code pushed to GitHub is tested and built by robots, but **nothing reaches the office until someone presses
-Release to production** on GitHub. The office Mac then installs it by itself within minutes: backup first,
-database update, health checks, and it goes back to the old version on its own if anything fails.
-See [How a change goes live](deploy/automatic.md).
-
-## How people reach it
-
-| Who | Address | What protects it |
-|---|---|---|
-| Staff, office and home | `https://quota.selectdmc.com` | Cloudflare Access: a one-time code to a work e-mail, then the Quota sign-in |
-| Clients | `trip.jordanselect.com` (JST) and `trip.jdtours.com` (JDT) | Only the map, the online offer and pictures; nothing else answers |
-
-Both come through Cloudflare tunnels, so no router port is open. See [How staff and clients reach it](reach.md).
+| **The office Mac** | The Mac mini in the office that runs Quota. Every command on this site is typed on it. |
+| **Terminal** | The Mac app where you type commands. Open it with **⌘ Space**, type `Terminal`, press **Return**. |
+| **The Quota folder** | The folder `~/quota` on the office Mac. Every command on this site is typed there. |
+| **Box (container)** | One part of Quota running on the Mac: `frontend` (the website), `backend` (the brain), `db` (the database), `backup` (nightly copies), `mail` (a test mail catcher). |
+| **Release** | Putting a new version of Quota live, with a button on GitHub. |
+| **Tunnel** | A safe link from the office Mac to Cloudflare, so people can reach Quota from outside without opening the router. |
 
 ## Typing the commands
 
-Every command on this site is typed in the Quota folder on the office Mac (`~/quota`). The production copy is
-called **quota** and uses two compose files, so every command starts:
+The live copy of Quota is called **quota** and uses two settings files, so many commands start like this:
 
 ```bash
 docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env
 ```
 
-Leaving out `-p quota` or the office file talks to a *different*, empty copy. If `ps` shows nothing, check you
-typed the whole start.
+Always copy the **whole** command from the page. If you leave out a part, the command talks to an empty copy
+and shows nothing.
+
+## How a new version arrives
+
+Code changes are tested by robots on GitHub, but **nothing reaches the office until someone presses Release to
+production**. The office Mac then installs it by itself within minutes: it takes a backup first, updates, checks
+itself, and goes back to the old version on its own if anything fails. See
+[How a change goes live](deploy/automatic.md).
+
+## How people reach it
+
+| Who | Address | What protects it |
+|---|---|---|
+| Staff, office and home | `https://quota.selectdmc.com` | A one-time code sent to a work e-mail, then the Quota sign-in |
+| Clients | `trip.jordanselect.com` (JST) and `trip.jdtours.com` (JDT) | Only the map, the online offer and pictures; nothing else answers |
+
+See [How staff and clients reach it](reach.md).
 
 ## The golden rules
 
-1. **Back up before any update.** See [Backups](maintenance/backups.md).
-2. **Never delete a Docker volume.** Never run `docker compose down -v` or `docker volume prune`.
-3. **Never start or stop other servers on ports 80, 5190 or 8010.** They belong to the live copy. A test server started there takes staff's traffic away.
-4. **Read the error before you act.** Start at the [site-down page](crashes/site-down.md).
-5. **Write down what you did**, with times.
+1. **Never delete a Docker volume.** Never run `docker compose down -v` or `docker volume prune`. That erases the database.
+2. **Never start or stop other servers on ports 80, 5190 or 8010.** They belong to the live Quota.
+3. **Read the message before you act.** Change one thing at a time.
+4. **Write down what you did**, with the times.
+5. **When unsure, stop and ask.** Waiting is safer than guessing.
 
 ## Who to contact
 
 _(Name, phone, role. Fill this in.)_
 
 !!! warning "Keep this site free of secrets"
-    GitHub Pages sites are public. Never write passwords, keys, IP addresses or customer data here.
+    This site is public. Never write passwords, keys, IP addresses or customer data here. The pictures on it
+    are made-up examples.

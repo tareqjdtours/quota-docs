@@ -7,6 +7,9 @@
 !!! tip "This is why copies must be kept off the server"
     If every backup was on the dead machine, the data may be gone. Check laptops, cloud drives, and colleagues first.
 
+!!! note "A job for the developer"
+    Rebuilding a lost machine needs the developer. This page is the order of the work, so nothing is forgotten.
+
 ## Steps
 
 1. **Prepare a new machine.** On a Mac, set it up as [The office Mac](../maintenance/office-mac.md) describes.

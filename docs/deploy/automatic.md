@@ -1,6 +1,6 @@
 # How a change reaches the office (the pipeline)
 
-**When to use this:** You want to know what the ticks on GitHub mean and how a change goes live.
+**When to use this:** You want to know what the green ticks and red crosses on GitHub mean, and how a change reaches the office.
 **Time it takes:** 5 minutes to read
 
 ## The short version
@@ -19,7 +19,7 @@ Nothing goes live in the office until someone presses **Release to production**.
 
 ## The robots on GitHub
 
-Open the repository on GitHub → **Actions** tab.
+Open the repository on GitHub and click the **Actions** tab at the top. Each run shows a green tick, a red cross or a yellow dot.
 
 | Robot | When | What it does |
 |---|---|---|

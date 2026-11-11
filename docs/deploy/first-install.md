@@ -4,6 +4,9 @@
 **Time it takes:** 45 minutes
 **You need:** A Mac with OrbStack (or Linux with Docker and the compose plugin), about 3 GB of disk, a GitHub token with only **read:packages**, the saved `deploy/.env` from the password manager, and the pictures folder (`images/`) on the machine.
 
+!!! note "A job for the developer"
+    This page is for setting up a whole new machine. Follow it with the developer on the phone if you can.
+
 The machine does not build anything: it downloads the versions the robots built and tested.
 
 ## Before you start
@@ -27,7 +30,9 @@ The machine does not build anything: it downloads the versions the robots built 
    DOCKER_CONFIG=$PWD/.docker docker login ghcr.io -u <github-user>
    ```
 
-   Paste the read-only token when it asks for the password.
+   Paste the read-only token when it asks for the password. Nothing shows while you paste.
+
+    ![It answers Login Succeeded](../img/term/login.png)
 
 3. **The settings file.** Copy back the saved one. Only for a brand-new install, start from the example instead
    and fill in every value (`nano .env`):
@@ -69,8 +74,9 @@ curl http://localhost/health
 curl http://localhost/api/v1/health/db
 ```
 
-The first answers `{"status":"ok"}`. The second shows the database and its version. Then open
-`https://quota.selectdmc.com` and sign in.
+![Both answers say status ok](../img/term/health.png)
+
+Then open `https://quota.selectdmc.com` and sign in.
 
 ## If something goes wrong
 

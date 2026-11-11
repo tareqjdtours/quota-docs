@@ -7,7 +7,7 @@
     The staging copy was stopped so only the live Quota runs on the Mac. Its data is kept. Until it is back,
     changes go from the tests straight to [Release a new version](update.md), so try them on a developer's test copy first.
 
-    **To bring it back** (on the Mac, in `~/quota/deploy`):
+    **To bring it back** (the developer does this, on the office Mac):
 
     ```bash
     mv .env.staging.off .env.staging

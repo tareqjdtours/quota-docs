@@ -1,59 +1,79 @@
 # Daily health check
 
-**When to use this:** Every morning, or whenever you want to be sure it is OK.
-**Time it takes:** 3 minutes
-**You need:** A browser; for the full check, [SSH access](../connect.md).
+**When to use this:** Every morning, or whenever you want to be sure Quota is OK.
+**Time it takes:** 1 minute for the quick check, 5 minutes for the full one
+**You need:** A browser. For the full check: the Terminal on the office Mac ([connect](../connect.md) if you are not at it).
 
-## Quick check
+## Quick check (no Terminal)
 
-1. Open the Quota Dashboard and sign in.
-2. Open a recent quote and its offer.
-3. Open `http://<server>/health` in a browser. It should answer `{"status":"ok"}`.
+1. Open `https://quota.selectdmc.com` and sign in.
+2. Open a recent order, then its offer.
 
-## Full check (on the server, in the Quota folder)
+!!! success "You should see"
+    The order and the offer open normally. If they do, Quota is fine and you can stop here.
 
-1. See every box:
+## Full check (on the office Mac)
 
-   ```bash
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env ps
-   ```
+### 1. Go to the Quota folder
 
-   Good looks like: `db`, `backend`, `frontend` and `backup` all running.
+```bash
+cd ~/quota
+```
 
-2. Check the database answers:
+### 2. Are all the boxes running?
 
-   ```bash
-   curl http://localhost/api/v1/health/db
-   ```
+```bash
+docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env ps --format "table {{.Service}}\t{{.Status}}"
+```
 
-3. Look at the latest backend messages:
+![All five boxes say Up; four of them also say healthy](../img/term/ps.png)
 
-   ```bash
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env logs --tail=50 backend
-   ```
+!!! success "You should see"
+    Five lines: `backend`, `backup`, `db`, `frontend` and `mail`, each saying **Up**. The hours and days will differ.
 
-4. Check the last backup was made:
+### 3. Does Quota answer?
 
-   ```bash
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env logs --tail=5 backup
-   ```
+```bash
+curl http://localhost/health
+curl http://localhost/api/v1/health/db
+```
 
-   You should see a line like `backup: wrote /backups/quota_<date>.sql.gz`.
+![Both answers start with status ok; the second also says database ok](../img/term/health.png)
 
-5. Check disk space (a full disk stops the database):
+!!! success "You should see"
+    `{"status":"ok"}`, then a line with `"database":"ok"`.
 
-   ```bash
-   df -h
-   ```
+### 4. Was last night's backup made?
 
-   Worry above about 85% used.
+```bash
+docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env logs --tail=3 backup
+```
 
-## If something goes wrong
+![The backup box says it wrote last night's file, with today's date](../img/term/backup-log.png)
+
+!!! success "You should see"
+    A line `backup: wrote /backups/quota_<today's date>_0200.sql.gz`. The date must be **today's** (it runs at 02:00).
+
+### 5. Is there enough disk space?
+
+```bash
+df -h /
+```
+
+![The Avail column shows how much space is left](../img/term/disk.png)
+
+!!! success "You should see"
+    More than **20Gi** under **Avail**. Below that, tell the developer this week. Below 10Gi, tell them today:
+    a full disk stops the database.
+
+## If you see something else
 
 | You see | Do this |
 |---|---|
-| A box is restarting or exited | [Site is down](../crashes/site-down.md) |
-| No recent backup line, or "pg_dump failed" | Check the disk, then take a [manual backup](backups.md) |
-| Disk above 85% | Tell the developer. Never delete Docker volumes. |
+| The quick check fails | [The site is down](../crashes/site-down.md) |
+| A box says `Restarting`, `Exited`, or is missing | [The site is down](../crashes/site-down.md) |
+| `curl` says `Connection refused` | [The site is down](../crashes/site-down.md) |
+| No backup line with today's date, or `pg_dump failed` | Check the disk (step 5), then tell the developer. |
+| Less than 20Gi free | Tell the developer. Never delete Docker volumes to make room. |
 
 _Last checked: 2026-11-11_

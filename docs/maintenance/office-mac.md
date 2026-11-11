@@ -1,69 +1,110 @@
 # The office Mac
 
-**When to use this:** The Mac was restarted, updated, or someone installed something on it; or updates stopped arriving.
+**When to use this:** The Mac was restarted or updated, someone installed something on it, or a new version
+did not arrive after a release.
 **Time it takes:** 10 minutes
-**You need:** A seat at the Mac or [SSH access](../connect.md).
+**You need:** A seat at the Mac, or the Terminal on it ([connect](../connect.md)).
 
-Quota runs on the Mac mini in the office. The live copy is in the folder `~/quota`. **Never run it from any other
-folder**: developers change branches in their own folders, and the live copy must stay on released versions.
+Quota runs on the Mac mini in the office, from the folder `~/quota`. **Never run it from any other folder.**
 
-## What must be true on the Mac
+## What must always be true
 
-| Setting | Why |
+| What | Why |
 |---|---|
-| **OrbStack** is the Docker app, set to *Start at login* | Every Quota box and both tunnels run in it. They come back by themselves when it starts. |
-| Docker's context is `orbstack` (`docker context ls` shows a star next to it) | If another Docker app (Docker Desktop) takes over, the boxes and the CRM's test robot cannot be reached. |
-| A user is logged in, and the Mac never sleeps | The update, backup and test schedules only run while someone is logged in. |
-| The Mac starts by itself after a power cut | So Quota comes back without anyone in the office. |
-| **Ollama** runs (it starts when the user logs in) | The mailbox search by meaning uses it. Without it, search still finds words and numbers, but not meanings. |
+| **OrbStack** is open, and set to *Start at login* | It runs every Quota box and both tunnels. They come back by themselves when it starts. |
+| A user is logged in, and the Mac never sleeps | The update and backup jobs run only while someone is logged in. |
+| The Mac starts by itself after a power cut | So Quota comes back with nobody in the office. |
+| **Ollama** is running | The mailbox search by meaning uses it. |
+| **Docker Desktop is not used** | If it is opened, it takes over and stops the boxes and the updates (this happened on 9 November 2026). |
 
-!!! warning "Do not install Docker Desktop"
-    On 9 November 2026 Docker Desktop was opened on this Mac. It took over Docker's settings, which broke the CRM's
-    tests and later stopped Quota's updates. If it happens again: `docker context use orbstack`.
+## Check it: 4 steps
 
-## The schedules
-
-Four jobs run on their own. Their logs are in `~/Library/Logs/`:
-
-| Job | When | Log |
-|---|---|---|
-| Install a released version | Every 2 minutes | `quota-update.log` |
-| Copy backups off the Mac | Every night at 03:15 | `quota-offsite.log` |
-| Prove the backups restore | Every Sunday | `quota-restore.log` |
-| The staging copy | Switched off (see [The staging copy](../deploy/staging.md)) | `quota-staging-update.log` |
-
-Show them: `launchctl list | grep quota`. Put them back after a reinstall: `cd ~/quota/deploy && ./install-macos.sh`.
-
-## Quota's own GitHub sign-in
-
-The Mac downloads new versions from GitHub's package store, signed in with a read-only token. Quota keeps this
-sign-in in its own folder, `~/quota/deploy/.docker`, apart from the Mac's usual one, because the CRM's test robot
-runs on the same Mac and signs out of the usual one after every run.
-
-If `quota-update.log` says **unauthorized**, the sign-in is gone or the token expired. Make a new token on GitHub
-with only **read:packages**, then on the Mac:
+### 1. OrbStack is in charge
 
 ```bash
-DOCKER_CONFIG=~/quota/deploy/.docker docker login ghcr.io -u <github-user>
+docker context ls
 ```
 
-Paste the token when it asks for the password. The next run (within 2 minutes) installs whatever was released.
+![The star must be next to orbstack](../img/term/context.png)
 
-## Check it worked
+!!! success "You should see"
+    A **star** `*` next to `orbstack`. If the star is somewhere else, type `docker context use orbstack` and press **Return**.
+
+### 2. New versions arrive
 
 ```bash
 tail -3 ~/Library/Logs/quota-update.log
 ```
 
-The last lines say `done:` or that nothing new was released, not `unauthorized` or `FAILED`.
+![The last line says done](../img/term/update-done.png)
 
-## If something goes wrong
+!!! success "You should see"
+    The last line says `done:`. If it says **unauthorized**, do [Quota's GitHub sign-in](#quotas-github-sign-in) below.
+
+### 3. The tunnels are up
+
+```bash
+docker ps --format '{{.Names}}  {{.Status}}' | grep tunnel
+```
+
+![Both tunnels say Up](../img/term/tunnels.png)
+
+!!! success "You should see"
+    `quota-staff-tunnel` and `quota-tunnel`, both **Up**. If one is missing: `docker start quota-staff-tunnel quota-tunnel`.
+
+### 4. The search helper runs
+
+```bash
+brew services list | grep ollama
+```
+
+![Ollama says started](../img/term/ollama.png)
+
+!!! success "You should see"
+    `ollama  started`. If it says anything else: `brew services restart ollama`.
+
+## Quota's GitHub sign-in
+
+The Mac downloads every new version from GitHub, signed in with a read-only key (a "token"). If the update log
+says **unauthorized**, the sign-in is gone or the token expired.
+
+![The update log saying unauthorized](../img/term/update-unauthorized.png)
+
+1. Ask the developer for a new GitHub token with only **read:packages** (or make one on GitHub: your picture,
+   top right → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)** →
+   **Generate new token**, tick only **read:packages**).
+2. On the office Mac, type this (change `<github-user>` to the GitHub username):
+
+    ```bash
+    DOCKER_CONFIG=~/quota/deploy/.docker docker login ghcr.io -u <github-user>
+    ```
+
+3. When it asks for **Password**, paste the token and press **Return**. Nothing shows while you paste. That is normal.
+
+    ![Paste the token as the password; it answers Login Succeeded](../img/term/login.png)
+
+4. Within 2 minutes the Mac installs whatever was released. Check with step 2 above.
+
+!!! danger "The token is a password"
+    Never put it in chat, e-mail or on this site.
+
+## The automatic jobs
+
+| Job | When | Its log in `~/Library/Logs/` |
+|---|---|---|
+| Install a released version | Every 2 minutes | `quota-update.log` |
+| Copy backups off the Mac | Every night at 03:15 | `quota-offsite.log` |
+| Prove the backups can be restored | Every Sunday | `quota-restore.log` (appears after the first Sunday) |
+
+To see them: `launchctl list | grep quota`. To put them back after a reinstall: `cd ~/quota/deploy && ./install-macos.sh`.
+
+## If you see something else
 
 | You see | Do this |
 |---|---|
-| "I pressed Release but nothing changed" | Read `quota-update.log`. `unauthorized`: the sign-in above. `FAILED ... rolled back`: the new version was refused; tell the developer. |
-| `Cannot connect to the Docker daemon` | OrbStack is not running. Open it. Then `docker context use orbstack`. |
-| Mail search ignores meanings | `brew services restart ollama` on the Mac, logged in as the usual user. |
-| After a power cut nothing came back | Someone must log in at the Mac once. Then check OrbStack started. |
+| "I pressed Release but nothing changed" | Step 2. `unauthorized`: the sign-in above. `FAILED ... rolled back`: the new version was refused; tell the developer. |
+| `Cannot connect to the Docker daemon` | Open **OrbStack** from Applications. Wait a minute. Then step 1. |
+| After a power cut nothing came back | Someone must log in at the Mac once. Then check OrbStack is open. |
+| Mail search finds words but not meanings | Step 4. |
 
 _Last checked: 2026-11-11_

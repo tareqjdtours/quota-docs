@@ -32,19 +32,22 @@ From a phone on mobile data (not the office Wi-Fi):
 - `https://trip.jordanselect.com/api/v1/auth/me` answers **404**. That is right: the client door must not reach sign-in.
 - `https://quota.selectdmc.com` shows the Cloudflare page asking for an e-mail address, never Quota straight away.
 
-On the Mac:
+On the office Mac, in the Terminal:
 
 ```bash
-docker ps --format '{{.Names}} {{.Status}}' | grep tunnel
+docker ps --format '{{.Names}}  {{.Status}}' | grep tunnel
 ```
 
-Both tunnels should say `Up`.
+![Both tunnels say Up](img/term/tunnels.png)
+
+!!! success "You should see"
+    `quota-staff-tunnel` and `quota-tunnel`, both **Up**.
 
 ## If something goes wrong
 
 | You see | Do this |
 |---|---|
-| Both addresses fail, the office address works | A tunnel is down. `docker start quota-staff-tunnel quota-tunnel`. If it stops again, read `docker logs --tail=50 quota-tunnel`. |
+| Both addresses fail, but Quota works inside the office | A tunnel is down. `docker start quota-staff-tunnel quota-tunnel`. If it stops again, read `docker logs --tail=50 quota-tunnel`. |
 | Staff see a plain **403** page from Quota's address | Something else is answering on port 5190 (a test server someone started). Tell the developer; never stop the live boxes. |
 | Staff get no code e-mail | Their address is not in the Cloudflare Access policy, or the code went to spam. Check Zero Trust › Access in Cloudflare. |
 | A client's map link opens but stays blank | An old copy of the map is stuck in their browser. A hard reload (Shift + reload) clears it. |

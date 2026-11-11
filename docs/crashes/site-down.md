@@ -1,70 +1,76 @@
 # The site is down: first five minutes
 
-**When to use this:** Staff cannot open the Quota Dashboard, or every page shows errors.
+**When to use this:** Staff cannot open Quota, or every page shows errors.
 **Time it takes:** 5 minutes to find the cause
-**You need:** [SSH access](../connect.md), in the Quota folder.
+**You need:** The Terminal on the office Mac ([connect](../connect.md) if you are not at it).
 
 !!! tip "Stay calm, change one thing at a time"
-    Your data is safe in the database volume. Most problems are fixed by a restart. Do **not** delete anything.
+    The data is safe in the database. Most problems are fixed by a restart. Do **not** delete anything.
 
-## Steps
+## 1. Is it Quota, or the way in?
 
-1. **What is running?**
+Ask someone in the office to open Quota **on the office network**. If it works there but not from home, the
+problem is the tunnel, not Quota: go to [How staff and clients reach it](../reach.md).
 
-   ```bash
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env ps
-   ```
+## 2. Go to the Quota folder
 
-   Any box that is exited, restarting or unhealthy is the suspect.
+```bash
+cd ~/quota
+```
 
-2. **Is the computer OK?**
+If this says `No such file or directory`, you are not on the office Mac. See [Connect to the server](../connect.md).
 
-   ```bash
-   df -h
-   ```
+## 3. Which box is in trouble?
 
-   100% full stops the database. Tell the developer; do not delete volumes.
+```bash
+docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env ps --format "table {{.Service}}\t{{.Status}}"
+```
 
-3. **Read the last messages:**
+![Healthy: every box says Up](../img/term/ps.png)
 
-   ```bash
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env logs --tail=100 backend
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env logs --tail=50 db
-   ```
+A box in trouble says **Restarting**, **Exited** or **unhealthy**, or is missing from the list:
 
-4. **Match what you see** with the table below.
+![In trouble: the backend box keeps restarting](../img/term/ps-bad.png)
 
-5. **If unsure, restart.** It keeps all data.
+## 4. Match what you see
 
-   ```bash
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env restart
-   ```
-
-   If that does not help:
-
-   ```bash
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env down
-   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env up -d
-   ```
-
-   Never add `-v` to `down`: it erases the database.
-
-## What you see and what to do
-
-| You see | Meaning | Do this |
+| You see | What it means | Do this |
 |---|---|---|
-| Site will not load, `frontend` not running | The web box stopped | `docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env up -d` |
-| Page loads, actions give **502** | The web box cannot reach the backend | `docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env restart backend frontend` |
-| `backend` keeps restarting | Often the database is down, or a setting is wrong | Read the backend logs; check `db` |
-| `db` not running | Database stopped | Check disk (step 2), then `up -d`. If it will not start: [Restore](restore-database.md) |
-| Errors about a missing column or table | New code, old database shape | Run `docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env exec backend alembic upgrade head` |
-| "locked" at sign-in | Too many wrong passwords | Wait 15 minutes |
-| A PDF, email or picture error | A single feature, not the whole site | [Common errors](common-errors.md) |
-| Office address works, `quota.selectdmc.com` does not | A tunnel, not Quota | [How staff and clients reach it](../reach.md) |
-| Staff see a plain **403** | A test server took port 5190 | Tell the developer; do not stop the live boxes |
-| Nothing at all, `Cannot connect to the Docker daemon` | OrbStack is not running | [The office Mac](../maintenance/office-mac.md) |
-| Whole server does not answer | Off or network down | [The server is gone](server-lost.md) |
-| Just updated | New version problem | [Go back](../deploy/rollback.md) |
+| `Cannot connect to the Docker daemon` | OrbStack, the app that runs the boxes, is closed | [The office Mac](../maintenance/office-mac.md) |
+| Every box says **Up**, but the site does not load | The boxes are fine; it is the way in | [How staff and clients reach it](../reach.md) |
+| `db` is not running | The database stopped | Do step 5. Check the disk with `df -h /`. If it will not start: [Restore](restore-database.md) |
+| `backend` keeps restarting | Often the database is down, or a setting is wrong | Do step 5, then read its messages (step 6) |
+| Pages load, but actions give **502** | The website cannot reach the backend | Do step 5 |
+| Staff see a plain **403** page | A test server took Quota's port | Tell the developer. Do not stop the live boxes. |
+| One feature fails: a PDF, an e-mail, a picture | Not the whole site | [Common errors](common-errors.md) |
+| It broke right after a release | The new version | [Go back to an earlier version](../deploy/rollback.md) |
+| The Mac does not answer at all | Off, or the network is down | [The server is gone](server-lost.md) |
+
+## 5. Restart (keeps all data)
+
+```bash
+docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env restart
+```
+
+![Every box says Started](../img/term/restart.png)
+
+Wait one minute, then do step 3 again. If a box is still in trouble, stop it all and start it again:
+
+```bash
+docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env down
+docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env up -d
+```
+
+!!! danger "Never add -v to down"
+    `down -v` erases the database.
+
+## 6. Still broken? Read the messages
+
+```bash
+docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env logs --tail=100 backend
+```
+
+Copy the last 30 lines and send them to the developer.
 
 ## Check it worked
 
@@ -73,12 +79,13 @@ curl http://localhost/health
 curl http://localhost/api/v1/health/db
 ```
 
-Then sign in and open a quote.
+![Both answers say status ok](../img/term/health.png)
+
+Then sign in and open an order.
 
 ## After it is fixed
 
 - Write down what happened, what you did, and the times.
 - Tell the team it is back.
-- Take a fresh [backup](../maintenance/backups.md).
 
 _Last checked: 2026-11-11_

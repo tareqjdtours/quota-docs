@@ -2,7 +2,7 @@
 
 **When to use this:** A password was shared by mistake, someone left, or a user is locked out.
 **Time it takes:** 10 minutes
-**You need:** [SSH access](../connect.md), in the Quota folder; or an administrator login.
+**You need:** An administrator login for a locked-out user. For the keys: the Terminal on the office Mac ([connect](../connect.md)).
 
 ## A user is locked out
 
@@ -15,14 +15,23 @@ the app: **Administration → Users**.
 The signing key (`JWT_SECRET`) proves a sign-in is genuine. Changing it signs
 **everyone** out.
 
-1. Edit the settings file:
+1. Make a new random key and copy what it prints (one long line of letters and numbers):
 
    ```bash
+   openssl rand -hex 32
+   ```
+
+2. Open the settings file:
+
+   ```bash
+   cd ~/quota
    nano deploy/.env
    ```
 
-2. Replace the `JWT_SECRET` value with a new long random text. Save (Ctrl+O, Enter, Ctrl+X).
-3. Restart:
+3. With the arrow keys, go to the line that starts with `JWT_SECRET=`. Delete what is after the `=` and paste
+   the new key. Change **nothing else**.
+4. Save and close: press **Ctrl O**, then **Return**, then **Ctrl X**.
+5. Restart:
 
    ```bash
    docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env up -d
