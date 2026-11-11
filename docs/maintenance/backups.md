@@ -4,7 +4,13 @@
 **Time it takes:** 5 minutes
 **You need:** [Access to the server](../connect.md) for the checks.
 
-## What is automatic
+!!! danger "Not finished: only one copy exists today"
+    As of 11 November 2026 the **backup SSD** and **Cloudflare R2** are not set up yet, and neither are the
+    monitor e-mails. So the nightly copies stay on the office Mac only, the 03:15 job fails every night with
+    "no destination", and **nobody is told** when something goes wrong. Until this is done, check by hand
+    (below) every week. The steps to set them up are in `deploy/README.md` in the Quota repository, "Backup and restore" and "Monitoring".
+
+## What is automatic (once set up)
 
 | When | What | Where |
 |---|---|---|
@@ -22,7 +28,7 @@ over the only good copy.
 
 ## You are told when something is wrong
 
-The monitor e-mails if a night is missed, the SSD is unplugged or full, the online copy fails, or the Sunday
+Once the monitor accounts are made, the monitor e-mails if a night is missed, the SSD is unplugged or full, the online copy fails, or the Sunday
 test fails. No e-mail means it worked.
 
 ## Check it by hand
@@ -39,7 +45,7 @@ tail -3 ~/Library/Logs/quota-restore.log     # last Sunday: "restore-check: ok"
 In the deploy folder on the server:
 
 ```bash
-docker compose -p quota -f compose.yml --env-file .env exec -T db pg_dump -U postgres quota | gzip > quota_manual.sql.gz
+docker compose -p quota -f compose.yml -f compose.office.yml --env-file .env exec -T db pg_dump -U postgres quota | gzip > quota_manual.sql.gz
 ```
 
 ## If something goes wrong
@@ -51,4 +57,4 @@ docker compose -p quota -f compose.yml --env-file .env exec -T db pg_dump -U pos
 | "the newest dump is N hours old" | The nightly backup stopped: [Site is down](../crashes/site-down.md) and check the `backup` box is running. |
 | "R2: copying ... failed" | Internet down that night, or the R2 key expired. Tell the developer if it repeats. |
 
-_Last checked: 2026-11-08_
+_Last checked: 2026-11-11_

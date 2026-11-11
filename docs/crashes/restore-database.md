@@ -14,7 +14,7 @@
 - [ ] The file is on the server. To take one from the backup volume:
 
   ```bash
-  docker compose -f deploy/compose.yml --env-file deploy/.env cp backup:/backups ./backups-copy
+  docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env cp backup:/backups ./backups-copy
   ls backups-copy
   ```
 
@@ -23,31 +23,31 @@
 1. Stop everything that uses the database:
 
    ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env stop backend backup
+   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env stop backend backup
    ```
 
 2. Empty the database:
 
    ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env exec -T db psql -U postgres -c 'DROP DATABASE quota' -c 'CREATE DATABASE quota'
+   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env exec -T db psql -U postgres -c 'DROP DATABASE quota' -c 'CREATE DATABASE quota'
    ```
 
 3. Load the backup (change the file name):
 
    ```bash
-   gunzip -c backups-copy/quota_<date>.sql.gz | docker compose -f deploy/compose.yml --env-file deploy/.env exec -T db psql -U postgres quota
+   gunzip -c backups-copy/quota_<date>.sql.gz | docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env exec -T db psql -U postgres quota
    ```
 
 4. Start everything and bring the database shape up to date:
 
    ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env start backend backup
-   docker compose -f deploy/compose.yml --env-file deploy/.env exec backend alembic upgrade head
+   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env start backend backup
+   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env exec backend alembic upgrade head
    ```
 
 ## Check it worked
 
-- `docker compose -f deploy/compose.yml --env-file deploy/.env ps` shows all boxes running.
+- `docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env ps` shows all boxes running.
 - Sign in and open a **recent quote** and its offer.
 - Tell staff which date and time the data goes back to, so they can re-enter anything missing.
 
@@ -55,9 +55,9 @@
 
 | You see | Do this |
 |---|---|
-| `database "quota" is being accessed by other users` | Step 1 did not stop everything. Run it again and check with `docker compose -f deploy/compose.yml --env-file deploy/.env ps`. |
+| `database "quota" is being accessed by other users` | Step 1 did not stop everything. Run it again and check with `docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env ps`. |
 | `gzip: not in gzip format` | Wrong or damaged file. Try another backup. |
-| `service "db" is not running` | `docker compose -f deploy/compose.yml --env-file deploy/.env up -d db`, wait a minute, retry from step 2. |
-| Errors about missing columns after the restore | Run `docker compose -f deploy/compose.yml --env-file deploy/.env exec backend alembic upgrade head` again. |
+| `service "db" is not running` | `docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env up -d db`, wait a minute, retry from step 2. |
+| Errors about missing columns after the restore | Run `docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env exec backend alembic upgrade head` again. |
 
 _Last checked: YYYY-MM-DD_

@@ -12,6 +12,7 @@ markdown_extensions:
 nav:
   - Start here: index.md
   - Connect to the server: connect.md
+  - How staff and clients reach it: reach.md
   - Deploy:
       - First install: deploy/first-install.md
       - How a change goes live: deploy/automatic.md
@@ -20,6 +21,7 @@ nav:
       - Go back to an earlier version: deploy/rollback.md
   - Maintenance:
       - Health check: maintenance/health-checks.md
+      - The office Mac: maintenance/office-mac.md
       - Backups: maintenance/backups.md
       - Passwords and keys: maintenance/secrets.md
   - When it crashes:

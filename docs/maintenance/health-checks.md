@@ -15,7 +15,7 @@
 1. See every box:
 
    ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env ps
+   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env ps
    ```
 
    Good looks like: `db`, `backend`, `frontend` and `backup` all running.
@@ -29,13 +29,13 @@
 3. Look at the latest backend messages:
 
    ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env logs --tail=50 backend
+   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env logs --tail=50 backend
    ```
 
 4. Check the last backup was made:
 
    ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env logs --tail=5 backup
+   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env logs --tail=5 backup
    ```
 
    You should see a line like `backup: wrote /backups/quota_<date>.sql.gz`.
@@ -56,4 +56,4 @@
 | No recent backup line, or "pg_dump failed" | Check the disk, then take a [manual backup](backups.md) |
 | Disk above 85% | Tell the developer. Never delete Docker volumes. |
 
-_Last checked: YYYY-MM-DD_
+_Last checked: 2026-11-11_

@@ -25,8 +25,21 @@ The signing key (`JWT_SECRET`) proves a sign-in is genuine. Changing it signs
 3. Restart:
 
    ```bash
-   docker compose -f deploy/compose.yml --env-file deploy/.env up -d
+   docker compose -p quota -f deploy/compose.yml -f deploy/compose.office.yml --env-file deploy/.env up -d
    ```
+
+!!! danger "Never change MAIL_SECRET_KEY"
+    `MAIL_SECRET_KEY` in `deploy/.env` locks the staff mailboxes' passwords inside the database. If it changes,
+    or is lost, every connected mailbox has to be connected again by its owner. Changing `JWT_SECRET` is safe
+    as long as `MAIL_SECRET_KEY` stays as it is.
+
+## Other keys on the Mac
+
+| Key | Where | If it leaks |
+|---|---|---|
+| Tunnel tokens | A `token` file next to each tunnel's start script | Make a new token in Cloudflare and restart that tunnel. See [How staff and clients reach it](../reach.md). |
+| GitHub download token | `~/quota/deploy/.docker` | Delete it on GitHub, make a new read-only one. See [The office Mac](office-mac.md). |
+| New-mail pop-up keys (`VAPID_*`) | `deploy/.env` | Make a new pair; staff then allow the pop-ups again once. |
 
 ## Change the database password
 
@@ -41,4 +54,4 @@ Do not do this alone: the password is stored in two places (the database and the
 - After a key change, you are asked to sign in again.
 - A new password lets the user in.
 
-_Last checked: YYYY-MM-DD_
+_Last checked: 2026-11-11_

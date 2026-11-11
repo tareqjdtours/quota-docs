@@ -3,6 +3,19 @@
 **When to use this:** You want to try a change on real data before it reaches the office.
 **Time it takes:** however long you need to try it
 
+!!! warning "Switched off since 8 November 2026"
+    The staging copy was stopped so only the live Quota runs on the Mac. Its data is kept. Until it is back,
+    changes go from the tests straight to [Release a new version](update.md), so try them on a developer's test copy first.
+
+    **To bring it back** (on the Mac, in `~/quota/deploy`):
+
+    ```bash
+    mv .env.staging.off .env.staging
+    ./install-macos.sh
+    ```
+
+    Then refresh its data (below), because it was copied from the live Quota on 8 November.
+
 ## What it is
 
 A second Quota on the same server, on **port 8080** of the server's office address. Every change that passes
@@ -27,4 +40,4 @@ Its data does not follow the real Quota by itself. The developer refreshes it fr
 
 When it works: [Release a new version](update.md).
 
-_Last checked: 2026-11-08_
+_Last checked: 2026-11-11_
